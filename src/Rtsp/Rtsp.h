@@ -21,15 +21,19 @@
 
 namespace mediakit {
 
+// 在Rtsp的命名空间中定义了RTP的传输类型，
 namespace Rtsp {
-typedef enum {
+typedef enum { // 包括无效、TCP、UDP和多播。
     RTP_Invalid = -1,
     RTP_TCP = 0,
     RTP_UDP = 1,
     RTP_MULTICAST = 2,
 } eRtpType;
-
-#define RTP_PT_MAP(XX)                                                                                                                                         \
+/*RTP有效载荷类型映射:定义了 RTP 协议中不同的负载类型及其对应的音频或视频编解码器信息。     
+负载类型名称 (PCMU、GSM、G723 等)、轨道类型 (TrackAudio 或 TrackVideo)、负载类型编号 (0、3、4 等)
+采样率 (8000、16000、44100 等)、通道数 (1 或 2)、编解码器类型 (CodecG711U、CodecG711A、CodecJPEG 等)
+*/
+#define RTP_PT_MAP(XX)                                                                                                                                     \
     XX(PCMU, TrackAudio, 0, 8000, 1, CodecG711U)                                                                                                               \
     XX(GSM, TrackAudio, 3, 8000, 1, CodecInvalid)                                                                                                              \
     XX(G723, TrackAudio, 4, 8000, 1, CodecInvalid)                                                                                                             \
@@ -54,7 +58,7 @@ typedef enum {
     XX(MPV, TrackVideo, 32, 90000, 1, CodecInvalid)                                                                                                            \
     XX(MP2T, TrackVideo, 33, 90000, 1, CodecInvalid)                                                                                                           \
     XX(H263, TrackVideo, 34, 90000, 1, CodecInvalid)
-
+/*PayloadType枚举，方便指定RTP数据包的负载类型*/
 typedef enum {
 #define ENUM_DEF(name, type, value, clock_rate, channel, codec_id) PT_##name = value,
     RTP_PT_MAP(ENUM_DEF)
@@ -69,6 +73,7 @@ typedef enum {
 
 class RtpHeader {
 public:
+//大端
 #if __BYTE_ORDER == __BIG_ENDIAN
     // 版本号，固定为2
     uint32_t version : 2;
@@ -82,7 +87,8 @@ public:
     uint32_t mark : 1;
     // 负载类型
     uint32_t pt : 7;
-#else
+
+#else // 小端序
     // csrc
     uint32_t csrc : 4;
     // 扩展
